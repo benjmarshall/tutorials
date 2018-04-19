@@ -21,9 +21,9 @@ func Top(
 	// For this example, we have 3 arguments: two operands to add
 	// together and an address in shared memory where the FPGA will
 	// store the output.
-  // YOUR CODE: declare the first operand here
-	// YOUR CODE: declare the second operand here
-	// YOUR CODE: declare the memory address for the FPGA to store the result
+	inA uint32,
+	inB uint32,
+	addr uintptr,
 
 	// Set up channels for interacting with the shared memory
 	memReadAddr chan<- axiprotocol.Addr,
@@ -37,7 +37,7 @@ func Top(
 	go axiprotocol.ReadDisable(memReadAddr, memReadData)
 
 	// Add the two input integers together
-	// YOUR CODE: Perform the addition here using the Add function
+	val := inA + inB
 
 	// Write the result of the addition to the shared memory address provided by the host
 	aximemory.WriteUInt32(
