@@ -17,8 +17,8 @@ func Top(
 	out uintptr,
 
 	// Set up channels for interacting with the shared memory
-	//memReadAddr chan<- axiprotocol.Addr,
-	//memReadData <-chan axiprotocol.ReadData,
+	memReadAddr chan<- axiprotocol.Addr,
+	memReadData <-chan axiprotocol.ReadData,
 
 	memWriteAddr chan<- axiprotocol.Addr,
 	memWriteData chan<- axiprotocol.WriteData,
