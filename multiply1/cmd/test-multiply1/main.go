@@ -3,11 +3,13 @@ package main
 import (
 	"encoding/binary"
 	"fmt"
+	"log"
+
 	"github.com/ReconfigureIO/sdaccel/xcl"
 )
 
 func main() {
-	// Allocate a 'world' for interacting with and FPGA
+	// Allocate a 'world' for interacting with the FPGA
 	world := xcl.NewWorld()
 	defer world.Release()
 
@@ -16,28 +18,36 @@ func main() {
 	krnl := world.Import("kernel_test").GetKernel("reconfigure_io_sdaccel_builder_stub_0_1")
 	defer krnl.Release()
 
-	// Allocate a space in the shared memory to store the results from the FPGA
-	// The output is a uint32, so we need 4 bytes to store it
-	buff := world.Malloc(xcl.WriteOnly, 4)
-	defer buff.Free()
+	// Allocate a space in the shared memory to store the data you're sending to the FPGA and space
+	// for the results from the FPGA
+	//inputBuff := world.Malloc(xcl.ReadOnly, <size here>)
+	//defer inputBuff.Free()
 
-	// Pass the arguments to the kernel.
+	outputBuff := world.Malloc(xcl.WriteOnly, 4)
+	defer outputBuff.Free()
 
-	// First argument is the integer to be multiplied
-	krnl.SetArg(0, 1)
-	// Second argument is the pointer to shared memory for storing the result
-	krnl.SetMemoryArg(1, buff)
+	// Create/get data and pass arguments to the FPGA as required. These could be small pieces of data,
+	// pointers to memory, data lengths so the FPGA knows what to expect. This all depends on your project.
+	// Usually, you will send data via shared memory, so you will need to write it to the space you allocated
+	// above before passing the pointer to the FPGA.
+	// We have passed three arguments here, you can pass more as neccessary
+
+	// First argument
+	krnl.SetArg(0, 3)
+	// Second argument
+	krnl.SetMemoryArg(1, outputBuff)
 
 	// Run the FPGA with the supplied arguments. This is the same for all projects.
 	// The arguments ``(1, 1, 1)`` relate to x, y, z co-ordinates and correspond to our current
 	// underlying technology.
 	krnl.Run(1, 1, 1)
 
-	// Create a variable for the result from the FPGA and read the result into it
-	var output uint32
-	binary.Read(buff.Reader(), binary.LittleEndian, &output)
+	// Display/use the results returned from the FPGA as required!
+	var result uint32
+	err := binary.Read(outputBuff.Reader(), binary.LittleEndian, &result)
+	if err != nil {
+		log.Fatalln("Failed to read back result")
+	}
 
-	// Print the result
-	fmt.Printf("%d\n", output)
-
+	fmt.Println("Result: ", result)
 }
